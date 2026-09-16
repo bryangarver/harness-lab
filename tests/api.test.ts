@@ -69,8 +69,9 @@ test('cancelling an approval terminates the run without a write', async () => {
   const cancelled = await waitFor(run.id, r => r.status === 'cancelled'); assert.equal(cancelled.approval, undefined);
   assert.equal((await json('/memories?mode=simulator')).data.length, 0);
 });
-test('the development server refuses direct access to the local credentials file', async () => {
-  const response = await fetch(`${base}/.env`); assert.ok([403, 404].includes(response.status));
+test('the development server refuses direct access to credential files', async () => {
+  // .env.example is always in the checkout, so it exercises the .env.* deny rule in CI, where .env itself is absent.
+  assert.equal((await fetch(`${base}/.env.example`)).status, 403); assert.doesNotMatch(await (await fetch(`${base}/.env`)).text(), /OPENAI_API_KEY=/);
 });
 
 test('a comparison runs three turn budgets against one shared scenario', async () => {
