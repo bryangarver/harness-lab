@@ -1,0 +1,15 @@
+node_modules/
+dist/
+build/
+releases/
+backups/
+.azure/
+.env
+.env.*
+!.env.example
+data/
+test-results/
+playwright-report/
+.DS_Store
+*.log
+private/
