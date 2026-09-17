@@ -74,6 +74,14 @@ test('the development server refuses direct access to credential files', async (
   assert.equal((await fetch(`${base}/.env.example`)).status, 403); assert.doesNotMatch(await (await fetch(`${base}/.env`)).text(), /OPENAI_API_KEY=/);
 });
 
+test('the public landing page and robots.txt are served before the app, and the field guide lives at /guide', async () => {
+  const landing = await fetch(`${base}/`); const html = await landing.text();
+  assert.equal(landing.status, 200); assert.match(landing.headers.get('content-type') || '', /text\/html/);
+  assert.match(html, /<meta name="description"/); assert.match(html, /href="\/guide"/); assert.match(html, /href="\/studio"/); assert.doesNotMatch(html, /id="root"/);
+  const robots = await fetch(`${base}/robots.txt`); assert.equal(robots.status, 200); assert.match(await robots.text(), /^User-agent: \*/);
+  const guide = await fetch(`${base}/guide`); assert.equal(guide.status, 200); assert.match(await guide.text(), /id="root"/);
+});
+
 test('a comparison runs three turn budgets against one shared scenario', async () => {
   const comparison = await json('/comparisons', { prompt: 'Calculate 24 * 7.', context: 'Shared brief.', variants: [1, 2, 4].map((maxSteps, i) => ({ label: `Harness ${i}`, config: { maxSteps } })) });
   assert.equal(comparison.status, 201); assert.equal(comparison.data.runs.length, 3);

@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-Open **http://localhost:3000**. The simulator works immediately, without credentials or model API calls. Fonts are bundled locally.
+Open **http://localhost:3000**. The landing page links to the field guide at `/guide` and the experiment studio at `/studio`. The simulator works immediately, without credentials or model API calls. Fonts are bundled locally.
 
 For the built app:
 
@@ -28,7 +28,7 @@ The hosted app uses Azure App Service on Linux, with Microsoft sign-in restricte
 
 `npm run release:azure` builds an allowlisted ZIP in `releases/`. It excludes `.env`, saved memories, run history, and local dependencies. Azure installs locked production dependencies. Hosted credentials come only from Azure environment variables; hosted mode never reads a local `.env` file.
 
-Hosted mode requires `HARNESS_ALLOWED_ORIGINS` (comma-separated HTTPS origins), `HARNESS_OWNER_ID` (one Microsoft tenant object ID), and Azure App Service Authentication. The app checks Azure's platform authentication flag and injected owner identity on every protected request. Its data lives in `/home/harness-data`, outside release files. Keep one instance and one Node process.
+Hosted mode requires `HARNESS_ALLOWED_ORIGINS` (comma-separated HTTPS origins), `HARNESS_OWNER_ID` (one Microsoft tenant object ID), and Azure App Service Authentication. The app checks Azure's platform authentication flag and injected owner identity on every protected request. The landing page at `/`, `robots.txt`, and `/healthz` are public by design and are also excluded from App Service authentication; everything else requires the owner's sign-in. Its data lives in `/home/harness-data`, outside release files. Keep one instance and one Node process.
 
 The private preview permits 60 live runs per UTC day by default (`HARNESS_LIVE_DAILY_LIMIT`), counting each comparison column separately and reserving the entire batch before starting it. Reservations survive restart and are not refunded for cancellations or errors. This is a run limit, not a dollar spending cap. Simulator runs do not count. Hosted mutations are limited to 120 requests per minute; reading results is unaffected.
 
@@ -53,7 +53,7 @@ Live mode sends your prompt, instructions, included context, selected memories, 
 
 ## Experiment Studio: compare in one run
 
-Open **http://localhost:3000/studio** for the alternate experience, or use **Experiment studio** in the field guide header. The original lesson-based design remains at `/`.
+Open **http://localhost:3000/studio** for the alternate experience, or use **Experiment studio** in the field guide header. The original lesson-based design remains at `/guide`.
 
 1. Choose one of ten experiments. Each starts with a shared scenario and two or three contrasting harness configurations.
 2. Compare the configuration table: each column is one version of the same agent. Switch features **On** to include them or **Off** to exclude them. Shaded rows identify differences; the selected experiment’s control appears first. Add or remove columns to compare **2–4 versions**. The supplied settings are ready to run unchanged. Expand **Additional settings** once to compare context limits, output limits, instructions, and answer checks across every version in the same table. Its summary flags differences even while collapsed.
@@ -136,6 +136,7 @@ Every execution event → local checkpoint → polling UI + saved history
 | `server/tools.ts` | Strict tool schemas, safe arithmetic parser, and bundled document search |
 | `server/store.ts` | Atomic local persistence, with isolated memory stores per mode |
 | `server/index.ts` | Local HTTP server, run lifecycle, approval/cancel endpoints, and frontend serving |
+| `server/landing.ts` | Public landing page and robots.txt, served before sign-in |
 | `server/schema.ts` | Input bounds and shared types |
 | `src/lessons.ts` | Educational content, examples, and control presets |
 | `src/App.tsx` | Original field guide, controls, trace, pinned comparison, and data panels |
@@ -177,7 +178,7 @@ Local mode binds to `127.0.0.1` with host/origin checks. Azure mode binds to its
 npm run check
 ```
 
-Runs TypeScript checks, a production build, and 40 automated tests covering the loop, calculator, schemas, budgets, memory, approvals/denials/expiry, cancellation, retrieval, planning, retries, evaluations, the HTTP endpoints, secret-file access, the OpenAI SDK tool-call protocol, comparison isolation and capacity, all ten studio teaching scenarios, hosted owner/origin checks, and persistent daily run reservations.
+Runs TypeScript checks, a production build, and 41 automated tests covering the loop, calculator, schemas, budgets, memory, approvals/denials/expiry, cancellation, retrieval, planning, retries, evaluations, the HTTP endpoints, secret-file access, the public landing page, the OpenAI SDK tool-call protocol, comparison isolation and capacity, all ten studio teaching scenarios, hosted owner/origin checks, and persistent daily run reservations.
 
 Tests use temporary isolated stores and a mocked OpenAI transport; they require no real credentials and make no paid model calls. An actual GPT-5.6 Sol request must be verified after you add your key. Browser verification also covers the desktop/mobile interface, running an experiment, approvals, and memory recall.
 

@@ -9,6 +9,7 @@ import { executeRun, newRun } from './harness.js';
 import { knowledge } from './tools.js';
 import { environment, isHosted } from './environment.js';
 import { accessControl } from './access.js';
+import { landingPage, publicHeaders, robotsTxt } from './landing.js';
 
 const app = express();
 const env = environment();
@@ -27,6 +28,9 @@ for (const run of store.runs()) {
 }
 app.disable('x-powered-by');
 app.get('/healthz', (_req, res) => res.json({ ok: true }));
+// Public by design and also excluded from App Service authentication; keep them static.
+app.get('/', (_req, res) => res.set(publicHeaders).type('html').send(landingPage));
+app.get('/robots.txt', (_req, res) => res.set(publicHeaders).type('text/plain').send(robotsTxt));
 app.use(accessControl(env, port));
 app.use('/api', (req, res, next) => {
   res.setHeader('Cache-Control', 'no-store');

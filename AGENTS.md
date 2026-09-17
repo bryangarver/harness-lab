@@ -29,7 +29,7 @@ Do not change these without discussing them first.
 
 - The OpenAI key never leaves the server. No endpoint returns it, it is never written to a trace or run JSON, and provider errors are sanitized. `tests/harness.test.ts` asserts this.
 - Hosted mode never reads `.env`. Credentials come only from environment variables. See `server/environment.ts`.
-- Hosted mode fails closed. Startup throws without HTTPS `HARNESS_ALLOWED_ORIGINS` and a `HARNESS_OWNER_ID`, and every hosted request must carry Azure's owner identity headers. See `server/access.ts`.
+- Hosted mode fails closed. Startup throws without HTTPS `HARNESS_ALLOWED_ORIGINS` and a `HARNESS_OWNER_ID`, and every hosted request must carry Azure's owner identity headers. See `server/access.ts`. The only public paths are `/healthz`, the landing page at `/`, and `/robots.txt`; they are registered before the access middleware in `server/index.ts`, excluded from App Service authentication, and must stay static with no app data.
 - The calculator is a hand-written parser. Never introduce `eval`, `Function`, or shell execution.
 - Approvals are server-owned: a unique ID per approval, stale IDs rejected with 409, a two-minute expiry, and writes are never retried automatically.
 - Comparison variants receive a `structuredClone` of the memory snapshot. Their memory writes must never reach the persistent store.
@@ -38,6 +38,7 @@ Do not change these without discussing them first.
 ## Conventions
 
 - `server/schema.ts` is the single source of types and Zod validation for both server and client. The frontend imports its types from there. Change shapes there first.
+- Routes: `/` is the public landing page rendered from `server/landing.ts`, `/guide` is the field guide, and `/studio` is the experiment studio. `src/main.tsx` renders the studio for `/studio` and the field guide for every other path.
 - Persistence is synchronous atomic JSON writes in `server/store.ts`, one process per data directory. Do not add a second process or worker without redesigning storage.
 - Existing JSX is dense, with long single-line elements. Match the surrounding style in a file rather than reformatting it.
 - Tests use `node:test` through `tsx --test tests/*.test.ts`, temporary directories, and a mocked `fetch` for OpenAI. New behaviour needs a test. `tests/studio.test.ts` pins what each teaching experiment must demonstrate.
